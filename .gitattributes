@@ -1,0 +1,3 @@
+# Store LF line endings in the repo and check them out as LF everywhere, so Windows,
+# Mac, Linux, and Docker all see identical files (no phantom whole-file diffs).
+* text=auto eol=lf

@@ -1,0 +1,21 @@
+# Secrets (document variables in example.env instead)
+.env
+.env.*
+
+# Node / Next.js
+node_modules/
+.next/
+*.tsbuildinfo
+
+# Python
+__pycache__/
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Local caches (e.g. the daily Sleeper /players/nfl download)
+.cache/

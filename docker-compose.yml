@@ -1,0 +1,36 @@
+# Local development database for Fantasy Magic.
+#
+#   docker compose up -d      start (in the background; -d = "detached")
+#   docker compose ps         is it running and healthy?
+#   docker compose logs db    what is Postgres saying?
+#   docker compose stop       stop it; data is kept
+#   docker compose down       remove the container; data is still kept (it's in the volume)
+#   docker compose down -v    remove the container AND the volume. This DELETES ALL DATA.
+
+name: fantasy-magic # prefix for the container and volume names Docker creates
+
+services:
+  db:
+    image: postgres:18 # official Postgres image, major version 18 (downloaded on first run)
+    environment:
+      # Read by the image on FIRST start only, to create the user and database.
+      # This password is for a local-only dev database (see the port binding below);
+      # never reuse it anywhere real.
+      POSTGRES_USER: fantasy
+      POSTGRES_PASSWORD: fantasy
+      POSTGRES_DB: fantasy_magic
+    ports:
+      - "127.0.0.1:5432:5432" # yourPC:containerPort. 127.0.0.1 = only this machine can connect
+    volumes:
+      # Named volume -> the data lives outside the container and survives `down`.
+      # Postgres 18 images keep data under /var/lib/postgresql (older versions used .../data).
+      - pgdata:/var/lib/postgresql
+    healthcheck:
+      # Docker runs this every 5s; the container shows "healthy" once Postgres accepts connections.
+      test: ["CMD-SHELL", "pg_isready -U fantasy -d fantasy_magic"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  pgdata:

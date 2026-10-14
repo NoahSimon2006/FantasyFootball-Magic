@@ -1,0 +1,41 @@
+[project]
+name = "fantasy-magic-api"
+version = "0.1.0"
+requires-python = ">=3.13"
+dependencies = [
+    "alembic>=1.20.0",
+    "fastapi[standard]>=0.143.1",
+    "httpx2>=2.13.1",
+    "psycopg[binary]>=3.3.6",
+    "pydantic-settings>=2.16.0",
+    "sqlalchemy>=2.1.4",
+]
+
+[dependency-groups]
+dev = [
+    "mypy>=2.4.0",
+    "pytest>=9.1.1",
+    "ruff>=0.17.0",
+]
+
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.lint]
+# E/F: real errors (pycodestyle, pyflakes) · I: import order · B: likely bugs (bugbear)
+# UP: modern syntax for our Python version (pyupgrade)
+select = ["E", "F", "I", "B", "UP"]
+
+[tool.ruff.lint.isort]
+# Our migrations folder is named `alembic/`, which makes ruff mistake the alembic
+# *library* for first-party code and sort its imports into the wrong group.
+known-third-party = ["alembic"]
+
+[tool.mypy]
+strict = true
+plugins = ["pydantic.mypy"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# Put api/ on the import path so tests can `import app` without installing the project.
+pythonpath = ["."]
