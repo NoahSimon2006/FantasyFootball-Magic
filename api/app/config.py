@@ -1,4 +1,5 @@
 from functools import lru_cache
+from pathlib import Path
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -19,6 +20,18 @@ class Settings(BaseSettings):
     database_url: str = (
         "postgresql+psycopg://fantasy:fantasy@127.0.0.1:5432/fantasy_magic?connect_timeout=10"
     )
+
+    # Comma-separated Sleeper usernames the league crawler starts from.
+    sleeper_seed_usernames: str = ""
+    # Ceiling on Sleeper API calls. Sleeper asks clients to stay under 1000/minute.
+    sleeper_max_requests_per_minute: int = 600
+    # Local cache directory (gitignored), e.g. for the daily ~15 MB /players/nfl download.
+    cache_dir: Path = Path(".cache")
+
+    @property
+    def seed_usernames(self) -> list[str]:
+        """`SLEEPER_SEED_USERNAMES` split on commas, with blanks dropped."""
+        return [name.strip() for name in self.sleeper_seed_usernames.split(",") if name.strip()]
 
 
 @lru_cache

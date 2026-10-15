@@ -39,3 +39,6 @@ plugins = ["pydantic.mypy"]
 testpaths = ["tests"]
 # Put api/ on the import path so tests can `import app` without installing the project.
 pythonpath = ["."]
+# importlib mode lets test files in different folders share a name (tests/db/test_models.py
+# and tests/sleeper/test_models.py) without colliding.
+addopts = "--import-mode=importlib"
