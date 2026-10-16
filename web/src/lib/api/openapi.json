@@ -1,6 +1,104 @@
 {
   "components": {
     "schemas": {
+      "DataFreshness": {
+        "properties": {
+          "latest_projection_snapshot": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latest Projection Snapshot"
+          },
+          "leagues": {
+            "title": "Leagues",
+            "type": "integer"
+          },
+          "players": {
+            "title": "Players",
+            "type": "integer"
+          },
+          "projection_snapshots": {
+            "title": "Projection Snapshots",
+            "type": "integer"
+          },
+          "trades": {
+            "title": "Trades",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "latest_projection_snapshot",
+          "projection_snapshots",
+          "players",
+          "leagues",
+          "trades"
+        ],
+        "title": "DataFreshness",
+        "type": "object"
+      },
+      "DriverOut": {
+        "description": "One reason behind a verdict, with its number. The UI renders these as evidence chips\nand the AI advisor receives the same list, so both always tell the same story.",
+        "properties": {
+          "amount": {
+            "title": "Amount",
+            "type": "number"
+          },
+          "kind": {
+            "enum": [
+              "value_gap",
+              "depth_adjustment"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "side": {
+            "anyOf": [
+              {
+                "enum": [
+                  "a",
+                  "b"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Side"
+          }
+        },
+        "required": [
+          "kind",
+          "side",
+          "amount",
+          "label"
+        ],
+        "title": "DriverOut",
+        "type": "object"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "title": "Detail",
+            "type": "array"
+          }
+        },
+        "title": "HTTPValidationError",
+        "type": "object"
+      },
       "HealthResponse": {
         "properties": {
           "status": {
@@ -12,6 +110,584 @@
           "status"
         ],
         "title": "HealthResponse",
+        "type": "object"
+      },
+      "LeagueFormatOut": {
+        "properties": {
+          "ppr": {
+            "title": "Ppr",
+            "type": "number"
+          },
+          "superflex": {
+            "title": "Superflex",
+            "type": "boolean"
+          },
+          "teams": {
+            "title": "Teams",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "teams",
+          "ppr",
+          "superflex"
+        ],
+        "title": "LeagueFormatOut",
+        "type": "object"
+      },
+      "LineupOut": {
+        "description": "Starting slots per team, by Sleeper slot code, e.g. {\"QB\": 1, \"FLEX\": 1}.",
+        "properties": {
+          "slots": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Slots",
+            "type": "object"
+          }
+        },
+        "required": [
+          "slots"
+        ],
+        "title": "LineupOut",
+        "type": "object"
+      },
+      "MethodologyResponse": {
+        "description": "The model's real settings and the data behind it, so the methodology page can never\ndescribe numbers the code doesn't use.",
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/DataFreshness"
+          },
+          "model": {
+            "const": "projection_vor_v0",
+            "title": "Model",
+            "type": "string"
+          },
+          "parameters": {
+            "$ref": "#/components/schemas/ModelParameters"
+          }
+        },
+        "required": [
+          "model",
+          "parameters",
+          "data"
+        ],
+        "title": "MethodologyResponse",
+        "type": "object"
+      },
+      "ModelParameters": {
+        "properties": {
+          "default_ppr": {
+            "title": "Default Ppr",
+            "type": "number"
+          },
+          "default_teams": {
+            "title": "Default Teams",
+            "type": "integer"
+          },
+          "depth_decay": {
+            "title": "Depth Decay",
+            "type": "number"
+          },
+          "even_threshold": {
+            "title": "Even Threshold",
+            "type": "number"
+          },
+          "last_fantasy_week": {
+            "title": "Last Fantasy Week",
+            "type": "integer"
+          },
+          "lineup_1qb": {
+            "$ref": "#/components/schemas/LineupOut"
+          },
+          "lineup_superflex": {
+            "$ref": "#/components/schemas/LineupOut"
+          },
+          "valued_positions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Valued Positions",
+            "type": "array"
+          }
+        },
+        "required": [
+          "depth_decay",
+          "even_threshold",
+          "last_fantasy_week",
+          "valued_positions",
+          "default_teams",
+          "default_ppr",
+          "lineup_1qb",
+          "lineup_superflex"
+        ],
+        "title": "ModelParameters",
+        "type": "object"
+      },
+      "PlayerRef": {
+        "description": "The few fields every list of players needs to display one.",
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "player_id": {
+            "title": "Player Id",
+            "type": "string"
+          },
+          "position": {
+            "title": "Position",
+            "type": "string"
+          },
+          "team": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Team"
+          }
+        },
+        "required": [
+          "player_id",
+          "name",
+          "position",
+          "team"
+        ],
+        "title": "PlayerRef",
+        "type": "object"
+      },
+      "PlayerSearchResponse": {
+        "properties": {
+          "players": {
+            "items": {
+              "$ref": "#/components/schemas/PlayerRef"
+            },
+            "title": "Players",
+            "type": "array"
+          }
+        },
+        "required": [
+          "players"
+        ],
+        "title": "PlayerSearchResponse",
+        "type": "object"
+      },
+      "PlayerValueOut": {
+        "properties": {
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "overall_rank": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Overall Rank"
+          },
+          "player_id": {
+            "title": "Player Id",
+            "type": "string"
+          },
+          "position": {
+            "title": "Position",
+            "type": "string"
+          },
+          "position_rank": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Position Rank"
+          },
+          "ros_points": {
+            "title": "Ros Points",
+            "type": "number"
+          },
+          "team": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Team"
+          },
+          "value": {
+            "title": "Value",
+            "type": "number"
+          }
+        },
+        "required": [
+          "player_id",
+          "name",
+          "position",
+          "team",
+          "ros_points",
+          "value",
+          "overall_rank",
+          "position_rank"
+        ],
+        "title": "PlayerValueOut",
+        "type": "object"
+      },
+      "TradeEvaluateRequest": {
+        "description": "What each team RECEIVES, plus the league format to value it in.",
+        "properties": {
+          "ppr": {
+            "default": 1.0,
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Ppr",
+            "type": "number"
+          },
+          "receives_a": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 10,
+            "title": "Receives A",
+            "type": "array"
+          },
+          "receives_b": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 10,
+            "title": "Receives B",
+            "type": "array"
+          },
+          "superflex": {
+            "default": false,
+            "title": "Superflex",
+            "type": "boolean"
+          },
+          "teams": {
+            "default": 12,
+            "maximum": 32.0,
+            "minimum": 2.0,
+            "title": "Teams",
+            "type": "integer"
+          }
+        },
+        "title": "TradeEvaluateRequest",
+        "type": "object"
+      },
+      "TradeEvaluationResponse": {
+        "properties": {
+          "drivers": {
+            "items": {
+              "$ref": "#/components/schemas/DriverOut"
+            },
+            "title": "Drivers",
+            "type": "array"
+          },
+          "league_format": {
+            "$ref": "#/components/schemas/LeagueFormatOut"
+          },
+          "margin": {
+            "title": "Margin",
+            "type": "number"
+          },
+          "margin_share": {
+            "title": "Margin Share",
+            "type": "number"
+          },
+          "method": {
+            "const": "projection_vor_v0",
+            "title": "Method",
+            "type": "string"
+          },
+          "side_a": {
+            "$ref": "#/components/schemas/TradeSideOut"
+          },
+          "side_b": {
+            "$ref": "#/components/schemas/TradeSideOut"
+          },
+          "snapshot_date": {
+            "format": "date",
+            "title": "Snapshot Date",
+            "type": "string"
+          },
+          "verdict": {
+            "enum": [
+              "a",
+              "b",
+              "even"
+            ],
+            "title": "Verdict",
+            "type": "string"
+          }
+        },
+        "required": [
+          "side_a",
+          "side_b",
+          "verdict",
+          "margin",
+          "margin_share",
+          "drivers",
+          "method",
+          "snapshot_date",
+          "league_format"
+        ],
+        "title": "TradeEvaluationResponse",
+        "type": "object"
+      },
+      "TradeSideOut": {
+        "properties": {
+          "adjusted_total": {
+            "title": "Adjusted Total",
+            "type": "number"
+          },
+          "players": {
+            "items": {
+              "$ref": "#/components/schemas/PlayerValueOut"
+            },
+            "title": "Players",
+            "type": "array"
+          },
+          "raw_total": {
+            "title": "Raw Total",
+            "type": "number"
+          }
+        },
+        "required": [
+          "players",
+          "raw_total",
+          "adjusted_total"
+        ],
+        "title": "TradeSideOut",
+        "type": "object"
+      },
+      "TradedPlayerOut": {
+        "properties": {
+          "change": {
+            "title": "Change",
+            "type": "integer"
+          },
+          "player": {
+            "$ref": "#/components/schemas/PlayerRef"
+          },
+          "previous_trades": {
+            "title": "Previous Trades",
+            "type": "integer"
+          },
+          "trades": {
+            "title": "Trades",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "player",
+          "trades",
+          "previous_trades",
+          "change"
+        ],
+        "title": "TradedPlayerOut",
+        "type": "object"
+      },
+      "TrendingResponse": {
+        "properties": {
+          "compared_to": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Compared To"
+          },
+          "days": {
+            "title": "Days",
+            "type": "integer"
+          },
+          "fallers": {
+            "items": {
+              "$ref": "#/components/schemas/ValueMoveOut"
+            },
+            "title": "Fallers",
+            "type": "array"
+          },
+          "league_format": {
+            "$ref": "#/components/schemas/LeagueFormatOut"
+          },
+          "most_traded": {
+            "items": {
+              "$ref": "#/components/schemas/TradedPlayerOut"
+            },
+            "title": "Most Traded",
+            "type": "array"
+          },
+          "risers": {
+            "items": {
+              "$ref": "#/components/schemas/ValueMoveOut"
+            },
+            "title": "Risers",
+            "type": "array"
+          },
+          "snapshot_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Snapshot Date"
+          }
+        },
+        "required": [
+          "days",
+          "league_format",
+          "most_traded",
+          "snapshot_date",
+          "compared_to",
+          "risers",
+          "fallers"
+        ],
+        "title": "TrendingResponse",
+        "type": "object"
+      },
+      "ValidationError": {
+        "properties": {
+          "ctx": {
+            "title": "Context",
+            "type": "object"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Location",
+            "type": "array"
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError",
+        "type": "object"
+      },
+      "ValueMoveOut": {
+        "properties": {
+          "change": {
+            "title": "Change",
+            "type": "number"
+          },
+          "player": {
+            "$ref": "#/components/schemas/PlayerRef"
+          },
+          "ros_points_now": {
+            "title": "Ros Points Now",
+            "type": "number"
+          },
+          "ros_points_then": {
+            "title": "Ros Points Then",
+            "type": "number"
+          },
+          "value_now": {
+            "title": "Value Now",
+            "type": "number"
+          },
+          "value_then": {
+            "title": "Value Then",
+            "type": "number"
+          }
+        },
+        "required": [
+          "player",
+          "value_now",
+          "value_then",
+          "change",
+          "ros_points_now",
+          "ros_points_then"
+        ],
+        "title": "ValueMoveOut",
+        "type": "object"
+      },
+      "ValuesResponse": {
+        "properties": {
+          "from_week": {
+            "title": "From Week",
+            "type": "integer"
+          },
+          "league_format": {
+            "$ref": "#/components/schemas/LeagueFormatOut"
+          },
+          "players": {
+            "items": {
+              "$ref": "#/components/schemas/PlayerValueOut"
+            },
+            "title": "Players",
+            "type": "array"
+          },
+          "season": {
+            "title": "Season",
+            "type": "integer"
+          },
+          "snapshot_date": {
+            "format": "date",
+            "title": "Snapshot Date",
+            "type": "string"
+          },
+          "through_week": {
+            "title": "Through Week",
+            "type": "integer"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "snapshot_date",
+          "season",
+          "from_week",
+          "through_week",
+          "league_format",
+          "total",
+          "players"
+        ],
+        "title": "ValuesResponse",
         "type": "object"
       }
     }
@@ -42,6 +718,356 @@
         "summary": "Health",
         "tags": [
           "health"
+        ]
+      }
+    },
+    "/api/v1/methodology": {
+      "get": {
+        "description": "How values are computed, read straight from the code's constants, plus how much data\nstands behind them right now.",
+        "operationId": "methodology_api_v1_methodology_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MethodologyResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Methodology",
+        "tags": [
+          "methodology"
+        ]
+      }
+    },
+    "/api/v1/players": {
+      "get": {
+        "description": "Find players by name, for pickers such as the trade calculator.",
+        "operationId": "find_players_api_v1_players_get",
+        "parameters": [
+          {
+            "description": "Part of a player's name",
+            "in": "query",
+            "name": "q",
+            "required": true,
+            "schema": {
+              "description": "Part of a player's name",
+              "maxLength": 50,
+              "minLength": 2,
+              "title": "Q",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "position",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "QB",
+                    "RB",
+                    "WR",
+                    "TE"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Position"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 50,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlayerSearchResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Find Players",
+        "tags": [
+          "players"
+        ]
+      }
+    },
+    "/api/v1/trades/evaluate": {
+      "post": {
+        "description": "Who wins a trade under v0 values, and by how much.",
+        "operationId": "evaluate_api_v1_trades_evaluate_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TradeEvaluateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TradeEvaluationResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Evaluate",
+        "tags": [
+          "trades"
+        ]
+      }
+    },
+    "/api/v1/trending": {
+      "get": {
+        "description": "Most-traded players, plus biggest risers and fallers in projected value.",
+        "operationId": "trending_api_v1_trending_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "days",
+            "required": false,
+            "schema": {
+              "default": 7,
+              "maximum": 30,
+              "minimum": 1,
+              "title": "Days",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 10,
+              "maximum": 50,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "teams",
+            "required": false,
+            "schema": {
+              "default": 12,
+              "maximum": 32,
+              "minimum": 2,
+              "title": "Teams",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "ppr",
+            "required": false,
+            "schema": {
+              "default": 1.0,
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "title": "Ppr",
+              "type": "number"
+            }
+          },
+          {
+            "in": "query",
+            "name": "superflex",
+            "required": false,
+            "schema": {
+              "default": false,
+              "title": "Superflex",
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrendingResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Trending",
+        "tags": [
+          "trending"
+        ]
+      }
+    },
+    "/api/v1/values": {
+      "get": {
+        "description": "Players ranked by v0 value (projected points over replacement) for a league format.",
+        "operationId": "list_values_api_v1_values_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "teams",
+            "required": false,
+            "schema": {
+              "default": 12,
+              "maximum": 32,
+              "minimum": 2,
+              "title": "Teams",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "ppr",
+            "required": false,
+            "schema": {
+              "default": 1.0,
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "title": "Ppr",
+              "type": "number"
+            }
+          },
+          {
+            "in": "query",
+            "name": "superflex",
+            "required": false,
+            "schema": {
+              "default": false,
+              "title": "Superflex",
+              "type": "boolean"
+            }
+          },
+          {
+            "in": "query",
+            "name": "position",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "QB",
+                    "RB",
+                    "WR",
+                    "TE"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Position"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 200,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValuesResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Values",
+        "tags": [
+          "values"
         ]
       }
     }

@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 
-from app.routers import health
+from app.errors import register_error_handlers
+from app.routers import health, methodology, players, trades, trending, values
 
 app = FastAPI(
     title="Fantasy Magic API",
@@ -8,4 +9,14 @@ app = FastAPI(
     description="Redraft fantasy football trade values built from real Sleeper trades.",
 )
 
-app.include_router(health.router, prefix="/api/v1")
+register_error_handlers(app)
+
+for router in (
+    health.router,
+    players.router,
+    values.router,
+    trades.router,
+    trending.router,
+    methodology.router,
+):
+    app.include_router(router, prefix="/api/v1")

@@ -24,14 +24,372 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/methodology": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Methodology
+         * @description How values are computed, read straight from the code's constants, plus how much data
+         *     stands behind them right now.
+         */
+        get: operations["methodology_api_v1_methodology_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/players": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Find Players
+         * @description Find players by name, for pickers such as the trade calculator.
+         */
+        get: operations["find_players_api_v1_players_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trades/evaluate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Evaluate
+         * @description Who wins a trade under v0 values, and by how much.
+         */
+        post: operations["evaluate_api_v1_trades_evaluate_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/trending": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Trending
+         * @description Most-traded players, plus biggest risers and fallers in projected value.
+         */
+        get: operations["trending_api_v1_trending_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/values": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List Values
+         * @description Players ranked by v0 value (projected points over replacement) for a league format.
+         */
+        get: operations["list_values_api_v1_values_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** DataFreshness */
+        DataFreshness: {
+            /** Latest Projection Snapshot */
+            latest_projection_snapshot: string | null;
+            /** Leagues */
+            leagues: number;
+            /** Players */
+            players: number;
+            /** Projection Snapshots */
+            projection_snapshots: number;
+            /** Trades */
+            trades: number;
+        };
+        /**
+         * DriverOut
+         * @description One reason behind a verdict, with its number. The UI renders these as evidence chips
+         *     and the AI advisor receives the same list, so both always tell the same story.
+         */
+        DriverOut: {
+            /** Amount */
+            amount: number;
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "value_gap" | "depth_adjustment";
+            /** Label */
+            label: string;
+            /** Side */
+            side: ("a" | "b") | null;
+        };
+        /** HTTPValidationError */
+        HTTPValidationError: {
+            /** Detail */
+            detail?: components["schemas"]["ValidationError"][];
+        };
         /** HealthResponse */
         HealthResponse: {
             /** Status */
             status: string;
+        };
+        /** LeagueFormatOut */
+        LeagueFormatOut: {
+            /** Ppr */
+            ppr: number;
+            /** Superflex */
+            superflex: boolean;
+            /** Teams */
+            teams: number;
+        };
+        /**
+         * LineupOut
+         * @description Starting slots per team, by Sleeper slot code, e.g. {"QB": 1, "FLEX": 1}.
+         */
+        LineupOut: {
+            /** Slots */
+            slots: {
+                [key: string]: number;
+            };
+        };
+        /**
+         * MethodologyResponse
+         * @description The model's real settings and the data behind it, so the methodology page can never
+         *     describe numbers the code doesn't use.
+         */
+        MethodologyResponse: {
+            data: components["schemas"]["DataFreshness"];
+            /**
+             * Model
+             * @constant
+             */
+            model: "projection_vor_v0";
+            parameters: components["schemas"]["ModelParameters"];
+        };
+        /** ModelParameters */
+        ModelParameters: {
+            /** Default Ppr */
+            default_ppr: number;
+            /** Default Teams */
+            default_teams: number;
+            /** Depth Decay */
+            depth_decay: number;
+            /** Even Threshold */
+            even_threshold: number;
+            /** Last Fantasy Week */
+            last_fantasy_week: number;
+            lineup_1qb: components["schemas"]["LineupOut"];
+            lineup_superflex: components["schemas"]["LineupOut"];
+            /** Valued Positions */
+            valued_positions: string[];
+        };
+        /**
+         * PlayerRef
+         * @description The few fields every list of players needs to display one.
+         */
+        PlayerRef: {
+            /** Name */
+            name: string;
+            /** Player Id */
+            player_id: string;
+            /** Position */
+            position: string;
+            /** Team */
+            team: string | null;
+        };
+        /** PlayerSearchResponse */
+        PlayerSearchResponse: {
+            /** Players */
+            players: components["schemas"]["PlayerRef"][];
+        };
+        /** PlayerValueOut */
+        PlayerValueOut: {
+            /** Name */
+            name: string;
+            /** Overall Rank */
+            overall_rank: number | null;
+            /** Player Id */
+            player_id: string;
+            /** Position */
+            position: string;
+            /** Position Rank */
+            position_rank: number | null;
+            /** Ros Points */
+            ros_points: number;
+            /** Team */
+            team: string | null;
+            /** Value */
+            value: number;
+        };
+        /**
+         * TradeEvaluateRequest
+         * @description What each team RECEIVES, plus the league format to value it in.
+         */
+        TradeEvaluateRequest: {
+            /**
+             * Ppr
+             * @default 1
+             */
+            ppr: number;
+            /** Receives A */
+            receives_a?: string[];
+            /** Receives B */
+            receives_b?: string[];
+            /**
+             * Superflex
+             * @default false
+             */
+            superflex: boolean;
+            /**
+             * Teams
+             * @default 12
+             */
+            teams: number;
+        };
+        /** TradeEvaluationResponse */
+        TradeEvaluationResponse: {
+            /** Drivers */
+            drivers: components["schemas"]["DriverOut"][];
+            league_format: components["schemas"]["LeagueFormatOut"];
+            /** Margin */
+            margin: number;
+            /** Margin Share */
+            margin_share: number;
+            /**
+             * Method
+             * @constant
+             */
+            method: "projection_vor_v0";
+            side_a: components["schemas"]["TradeSideOut"];
+            side_b: components["schemas"]["TradeSideOut"];
+            /**
+             * Snapshot Date
+             * Format: date
+             */
+            snapshot_date: string;
+            /**
+             * Verdict
+             * @enum {string}
+             */
+            verdict: "a" | "b" | "even";
+        };
+        /** TradeSideOut */
+        TradeSideOut: {
+            /** Adjusted Total */
+            adjusted_total: number;
+            /** Players */
+            players: components["schemas"]["PlayerValueOut"][];
+            /** Raw Total */
+            raw_total: number;
+        };
+        /** TradedPlayerOut */
+        TradedPlayerOut: {
+            /** Change */
+            change: number;
+            player: components["schemas"]["PlayerRef"];
+            /** Previous Trades */
+            previous_trades: number;
+            /** Trades */
+            trades: number;
+        };
+        /** TrendingResponse */
+        TrendingResponse: {
+            /** Compared To */
+            compared_to: string | null;
+            /** Days */
+            days: number;
+            /** Fallers */
+            fallers: components["schemas"]["ValueMoveOut"][];
+            league_format: components["schemas"]["LeagueFormatOut"];
+            /** Most Traded */
+            most_traded: components["schemas"]["TradedPlayerOut"][];
+            /** Risers */
+            risers: components["schemas"]["ValueMoveOut"][];
+            /** Snapshot Date */
+            snapshot_date: string | null;
+        };
+        /** ValidationError */
+        ValidationError: {
+            /** Context */
+            ctx?: Record<string, never>;
+            /** Input */
+            input?: unknown;
+            /** Location */
+            loc: (string | number)[];
+            /** Message */
+            msg: string;
+            /** Error Type */
+            type: string;
+        };
+        /** ValueMoveOut */
+        ValueMoveOut: {
+            /** Change */
+            change: number;
+            player: components["schemas"]["PlayerRef"];
+            /** Ros Points Now */
+            ros_points_now: number;
+            /** Ros Points Then */
+            ros_points_then: number;
+            /** Value Now */
+            value_now: number;
+            /** Value Then */
+            value_then: number;
+        };
+        /** ValuesResponse */
+        ValuesResponse: {
+            /** From Week */
+            from_week: number;
+            league_format: components["schemas"]["LeagueFormatOut"];
+            /** Players */
+            players: components["schemas"]["PlayerValueOut"][];
+            /** Season */
+            season: number;
+            /**
+             * Snapshot Date
+             * Format: date
+             */
+            snapshot_date: string;
+            /** Through Week */
+            through_week: number;
+            /** Total */
+            total: number;
         };
     };
     responses: never;
@@ -58,6 +416,164 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HealthResponse"];
+                };
+            };
+        };
+    };
+    methodology_api_v1_methodology_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MethodologyResponse"];
+                };
+            };
+        };
+    };
+    find_players_api_v1_players_get: {
+        parameters: {
+            query: {
+                /** @description Part of a player's name */
+                q: string;
+                position?: ("QB" | "RB" | "WR" | "TE") | null;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlayerSearchResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    evaluate_api_v1_trades_evaluate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TradeEvaluateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TradeEvaluationResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    trending_api_v1_trending_get: {
+        parameters: {
+            query?: {
+                days?: number;
+                limit?: number;
+                teams?: number;
+                ppr?: number;
+                superflex?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TrendingResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_values_api_v1_values_get: {
+        parameters: {
+            query?: {
+                teams?: number;
+                ppr?: number;
+                superflex?: boolean;
+                position?: ("QB" | "RB" | "WR" | "TE") | null;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ValuesResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

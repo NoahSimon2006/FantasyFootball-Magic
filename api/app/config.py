@@ -28,6 +28,13 @@ class Settings(BaseSettings):
     # Local cache directory (gitignored), e.g. for the daily ~15 MB /players/nfl download.
     cache_dir: Path = Path(".cache")
 
+    # AI trade advisor. Empty key = advisor disabled (its endpoint answers 503); the key is
+    # read from the environment / api/.env and never committed.
+    anthropic_api_key: str = ""
+    advisor_model: str = "claude-sonnet-5-5"
+    # Every advisor question costs real money, so the endpoint rate-limits itself.
+    advisor_max_requests_per_hour: int = 20
+
     @property
     def seed_usernames(self) -> list[str]:
         """`SLEEPER_SEED_USERNAMES` split on commas, with blanks dropped."""
