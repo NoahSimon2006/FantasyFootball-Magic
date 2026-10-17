@@ -78,7 +78,7 @@ export function TrendingView({
       {history.kind === "ready" ? (
         <div className="space-y-6">
           <p className="text-sm text-ink-muted">
-            Value changes since{" "}
+            Projection changes since{" "}
             <time dateTime={history.comparedTo}>
               {formatDate(history.comparedTo)}
             </time>
@@ -86,33 +86,42 @@ export function TrendingView({
             <time dateTime={history.snapshotDate}>
               {formatDate(history.snapshotDate)}
             </time>
-            .
+            . Players are ranked by the change in their own projected
+            rest-of-season points. Value is shown too, but it also moves when
+            the position&apos;s replacement level does, so it isn&apos;t what
+            the lists are ranked by.
           </p>
           <div className="grid gap-12 lg:grid-cols-2">
             <section aria-labelledby="risers-title">
               <SectionHeading id="risers-title" title="Risers">
-                Biggest gains in value.
+                Biggest gains in projected points.
               </SectionHeading>
               {trending.risers.length > 0 ? (
                 <MoversTable
                   moves={trending.risers}
-                  caption={`Risers: biggest value gains over ${days} days`}
+                  caption={`Risers: biggest projected-points gains over ${days} days`}
                 />
               ) : (
-                <EmptyNote>No player gained value over this window.</EmptyNote>
+                <EmptyNote>
+                  No player&apos;s projection rose by half a point or more over
+                  this window.
+                </EmptyNote>
               )}
             </section>
             <section aria-labelledby="fallers-title">
               <SectionHeading id="fallers-title" title="Fallers">
-                Biggest drops in value.
+                Biggest drops in projected points.
               </SectionHeading>
               {trending.fallers.length > 0 ? (
                 <MoversTable
                   moves={trending.fallers}
-                  caption={`Fallers: biggest value drops over ${days} days`}
+                  caption={`Fallers: biggest projected-points drops over ${days} days`}
                 />
               ) : (
-                <EmptyNote>No player lost value over this window.</EmptyNote>
+                <EmptyNote>
+                  No player&apos;s projection fell by half a point or more over
+                  this window.
+                </EmptyNote>
               )}
             </section>
           </div>

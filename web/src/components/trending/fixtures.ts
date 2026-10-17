@@ -35,6 +35,7 @@ export function makeValueMove(overrides: Partial<ValueMove> = {}): ValueMove {
     change: 6.2,
     ros_points_now: 182.4,
     ros_points_then: 171.0,
+    points_change: 11.4,
     ...overrides,
   };
 }
@@ -58,6 +59,7 @@ export function makeTrendingResponse(
         change: -8.5,
         ros_points_now: 190.2,
         ros_points_then: 201.0,
+        points_change: -10.8,
       }),
     ],
     ...overrides,

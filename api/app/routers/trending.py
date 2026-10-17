@@ -9,7 +9,7 @@ from app.deps import DbSession
 from app.routers.values import format_out
 from app.schemas.players import PlayerRef
 from app.schemas.trending import TradedPlayerOut, TrendingResponse, ValueMoveOut
-from app.services.trending import ValueMove, trade_volume, value_moves
+from app.services.trending import MIN_POINTS_MOVE, ValueMove, trade_volume, value_moves
 from app.services.values import ValuesUnavailableError, latest_snapshot_date, league_format
 
 router = APIRouter(tags=["trending"])
@@ -30,6 +30,7 @@ def move_out(move: ValueMove, players: dict[str, Player]) -> ValueMoveOut:
         value_now=round(move.value_now, 2),
         value_then=round(move.value_then, 2),
         change=round(move.change, 2),
+        points_change=round(move.points_change, 2),
         ros_points_now=round(move.ros_now, 2),
         ros_points_then=round(move.ros_then, 2),
     )
@@ -67,10 +68,19 @@ def trending(
     fallers: list[ValueMoveOut] = []
     if moves is not None:
         compared_to = moves.compared_to
-        risers = [move_out(m, moves.players) for m in moves.moves if m.change > 0][:limit]
-        fallers = [move_out(m, moves.players) for m in moves.moves if m.change < 0][:limit]
-        risers.sort(key=lambda m: (-m.change, m.player.player_id))
-        fallers.sort(key=lambda m: (m.change, m.player.player_id))
+        # Ranked by the player's own projected-points change, never by value change: a
+        # shift in a position's replacement level moves every player there equally and would
+        # crowd the lists with players whose projections barely changed.
+        # Only players with trade value in at least one snapshot (see matters_for_trades).
+        relevant = [m for m in moves.moves if m.matters_for_trades]
+        risers = [
+            move_out(m, moves.players) for m in relevant if m.points_change >= MIN_POINTS_MOVE
+        ][:limit]
+        fallers = [
+            move_out(m, moves.players) for m in relevant if m.points_change <= -MIN_POINTS_MOVE
+        ][:limit]
+        risers.sort(key=lambda m: (-m.points_change, m.player.player_id))
+        fallers.sort(key=lambda m: (m.points_change, m.player.player_id))
 
     return TrendingResponse(
         days=days,

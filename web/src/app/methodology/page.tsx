@@ -77,6 +77,24 @@ export default function MethodologyPage() {
           </p>
         </Section>
 
+        <Section title="How trending is measured">
+          <p>
+            &ldquo;Most traded&rdquo; counts the redraft trades a player was
+            part of in the last few days, next to the same number for the days
+            before. Risers and fallers compare each player&apos;s projected
+            rest-of-season points now with an earlier snapshot, over the same
+            remaining weeks, so a week of games being played never looks like
+            lost value. They are ranked by the player&apos;s <em>own</em>{" "}
+            projected points, not by value: value is measured against
+            replacement level, which also moves, so when it rises every player
+            at that position loses value without changing at all. In real data,
+            four elite running backs once showed as top &ldquo;fallers&rdquo;
+            for exactly that reason while their own projections moved by about a
+            point. Players who are below replacement level both before and after
+            are left out, since they have no trade value either way.
+          </p>
+        </Section>
+
         <Section title="Where the data comes from">
           <p>
             Everything comes from Sleeper&apos;s public API. The NFL player list

@@ -17,6 +17,10 @@ from app.db.models import League, Player, ProjectionSnapshot, Trade, TradeAsset
 from app.services.values import ValuesResult, compute_values
 from app.valuation.formats import LeagueFormat
 
+# A projected-points change smaller than this (over the whole rest of the season) is noise,
+# not a mover: Sleeper nudges projections by a fraction of a point all the time.
+MIN_POINTS_MOVE = 0.5
+
 
 @dataclass(frozen=True)
 class TradeVolume:
@@ -35,7 +39,22 @@ class ValueMove:
 
     @property
     def change(self) -> float:
+        """Change in value. Includes the effect of the position's replacement level moving:
+        when it rises, every player at that position loses value without changing at all."""
         return self.value_now - self.value_then
+
+    @property
+    def matters_for_trades(self) -> bool:
+        """True when the player is worth more than a free agent in at least one snapshot.
+        A player below replacement level both before and after has no trade value either
+        way, so his projection change is waiver-wire news, not trade news."""
+        return max(self.value_now, self.value_then) > 0
+
+    @property
+    def points_change(self) -> float:
+        """Change in the player's OWN projected rest-of-season points. This is what risers and
+        fallers are ranked by, because it can't be caused by anyone else's projection."""
+        return self.ros_now - self.ros_then
 
 
 def trade_volume(session: Session, *, now: datetime, days: int) -> list[TradeVolume]:
@@ -78,7 +97,7 @@ def trade_volume(session: Session, *, now: datetime, days: int) -> list[TradeVol
 class ValueMoves:
     now: ValuesResult
     compared_to: date  # the older snapshot the moves are measured against
-    moves: list[ValueMove]  # biggest change first, in either direction
+    moves: list[ValueMove]  # biggest change in projected points first, in either direction
     players: dict[str, Player]  # rows for every player in `moves`, for names and teams
 
 
@@ -113,7 +132,7 @@ def value_moves(session: Session, fmt: LeagueFormat, *, days: int) -> ValueMoves
                 ros_then=earlier.ros_points if earlier else 0.0,
             )
         )
-    moves.sort(key=lambda move: (-abs(move.change), move.player_id))
+    moves.sort(key=lambda move: (-abs(move.points_change), move.player_id))
     return ValueMoves(
         now=now, compared_to=then_date, moves=moves, players={**then.players, **now.players}
     )

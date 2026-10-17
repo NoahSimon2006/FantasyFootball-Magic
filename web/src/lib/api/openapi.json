@@ -616,6 +616,10 @@
           "player": {
             "$ref": "#/components/schemas/PlayerRef"
           },
+          "points_change": {
+            "title": "Points Change",
+            "type": "number"
+          },
           "ros_points_now": {
             "title": "Ros Points Now",
             "type": "number"
@@ -635,11 +639,12 @@
         },
         "required": [
           "player",
+          "ros_points_now",
+          "ros_points_then",
+          "points_change",
           "value_now",
           "value_then",
-          "change",
-          "ros_points_now",
-          "ros_points_then"
+          "change"
         ],
         "title": "ValueMoveOut",
         "type": "object"

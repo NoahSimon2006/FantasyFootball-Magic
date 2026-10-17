@@ -15,11 +15,15 @@ class TradedPlayerOut(BaseModel):
 
 class ValueMoveOut(BaseModel):
     player: PlayerRef
+    ros_points_now: float  # projected rest-of-season points
+    ros_points_then: float
+    # The change in the player's OWN projection. Risers and fallers are ranked by this.
+    points_change: float
     value_now: float
     value_then: float
-    change: float  # value_now - value_then
-    ros_points_now: float
-    ros_points_then: float
+    # value_now - value_then. Also moves when the position's replacement level moves, so a
+    # player can lose value without any change in his own projection (points_change ~ 0).
+    change: float
 
 
 class TrendingResponse(BaseModel):

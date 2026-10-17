@@ -65,8 +65,8 @@ describe("TrendingView", () => {
   it("says which two snapshots risers and fallers compare", () => {
     renderView();
 
-    expect(screen.getByText(/Value changes since/).textContent).toBe(
-      "Value changes since Oct 7, 2026, using projections from Oct 14, 2026.",
+    expect(screen.getByText(/Projection changes since/).textContent).toMatch(
+      /^Projection changes since Oct 7, 2026, using projections from Oct 14, 2026\. Players are ranked by the change in their own projected rest-of-season points\./,
     );
   });
 
@@ -168,7 +168,7 @@ describe("TrendingView", () => {
     ).toBeInTheDocument();
   });
 
-  it("says when no player gained value over the window", () => {
+  it("says when no player's projection rose over the window", () => {
     renderView({
       result: {
         kind: "ok",
@@ -180,7 +180,9 @@ describe("TrendingView", () => {
     });
 
     expect(
-      screen.getByText("No player gained value over this window."),
+      screen.getByText(
+        "No player's projection rose by half a point or more over this window.",
+      ),
     ).toBeInTheDocument();
   });
 

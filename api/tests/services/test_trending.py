@@ -105,7 +105,14 @@ def test_a_rising_player_pushes_the_replacement_level_up_for_everyone_else(
         "q3": 2.0,
         "q4": 0.0,
     }
-    assert [m.player_id for m in moves.moves] == ["q1", "q2", "q3", "q4"]  # biggest change first
+    # Ranked by the player's OWN projected-points change, not by value change: q3 moved +18
+    # points; q1 and q2 lost value only because replacement level rose (their points: 0).
+    assert [(m.player_id, m.points_change) for m in moves.moves] == [
+        ("q3", 18.0),
+        ("q1", 0.0),
+        ("q2", 0.0),
+        ("q4", 0.0),
+    ]
     q3 = next(m for m in moves.moves if m.player_id == "q3")
     assert (q3.ros_then, q3.ros_now) == (20.0, 38.0)
 

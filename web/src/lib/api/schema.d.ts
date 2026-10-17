@@ -363,6 +363,8 @@ export interface components {
             /** Change */
             change: number;
             player: components["schemas"]["PlayerRef"];
+            /** Points Change */
+            points_change: number;
             /** Ros Points Now */
             ros_points_now: number;
             /** Ros Points Then */

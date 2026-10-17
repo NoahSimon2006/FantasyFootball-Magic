@@ -9,7 +9,11 @@ import {
 import { Delta } from "./delta";
 import type { ValueMove } from "./types";
 
-/** Risers or fallers: value now over what it was, the signed change, and projected points. */
+/**
+ * Risers or fallers, ranked by the change in the player's OWN projected points (the headline),
+ * with value alongside. Value can also move because the position's replacement level moved,
+ * which is why it isn't what the list is ranked by.
+ */
 export function MoversTable({
   moves,
   caption,
@@ -32,14 +36,14 @@ export function MoversTable({
               Player
             </th>
             <th scope="col" className={`${HEAD_CLASSES} text-right`}>
-              Value
+              <span aria-hidden="true">Proj. pts</span>
+              <span className="sr-only">Projected points</span>
             </th>
             <th scope="col" className={`${HEAD_CLASSES} text-right`}>
               Change
             </th>
             <th scope="col" className={`${HEAD_CLASSES} text-right`}>
-              <span aria-hidden="true">Proj. pts</span>
-              <span className="sr-only">Projected points</span>
+              Value
             </th>
           </tr>
         </thead>
@@ -51,17 +55,22 @@ export function MoversTable({
               </th>
               <td className={`${CELL_CLASSES} text-right`}>
                 <span className="block font-semibold text-ink">
+                  {formatPoints(move.ros_points_now)}
+                </span>
+                <span className="block text-xs text-ink-muted">
+                  was {formatPoints(move.ros_points_then)}
+                </span>
+              </td>
+              <td className={`${CELL_CLASSES} text-right`}>
+                <Delta change={move.points_change} unit="points" />
+              </td>
+              <td className={`${CELL_CLASSES} text-right`}>
+                <span className="block text-ink">
                   {formatPoints(move.value_now)}
                 </span>
                 <span className="block text-xs text-ink-muted">
                   was {formatPoints(move.value_then)}
                 </span>
-              </td>
-              <td className={`${CELL_CLASSES} text-right`}>
-                <Delta change={move.change} unit="points" />
-              </td>
-              <td className={`${CELL_CLASSES} text-right`}>
-                {formatPoints(move.ros_points_now)}
               </td>
             </tr>
           ))}

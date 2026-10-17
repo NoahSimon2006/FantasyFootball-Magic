@@ -24,9 +24,9 @@ export function HistoryNotice({
     return (
       <StatePanel title="Risers and fallers need values, and none are loaded yet">
         <p>
-          They track how each player’s value changes, and no projections have
-          been loaded to value players with. The most-traded counts don’t need
-          projections, so they show up as soon as trades are loaded.
+          They track how each player’s projection changes, and no projections
+          have been loaded to value players with. The most-traded counts don’t
+          need projections, so they show up as soon as trades are loaded.
         </p>
       </StatePanel>
     );
@@ -35,10 +35,10 @@ export function HistoryNotice({
   return (
     <StatePanel title="Risers and fallers are still building history">
       <p>
-        They compare each player’s value now with his value at least {days} days
-        earlier, so they need two projection snapshots that far apart.
-        Projections are saved as one snapshot per day, so these lists fill in
-        over the first {spanLabel(days)} of data.
+        They compare each player’s projected points now with his projection at
+        least {days} days earlier, so they need two projection snapshots that
+        far apart. Projections are saved as one snapshot per day, so these lists
+        fill in over the first {spanLabel(days)} of data.
       </p>
       {history.latestSnapshot ? (
         <p>

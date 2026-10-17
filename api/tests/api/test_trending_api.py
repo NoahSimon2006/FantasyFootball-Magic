@@ -57,13 +57,72 @@ def test_trending_reports_most_traded_players_and_value_risers_and_fallers(
 
     assert body["most_traded"][0]["player"]["player_id"] == "q3"
     assert (body["snapshot_date"], body["compared_to"]) == ("2026-10-15", "2026-10-07")
-    assert [(m["player"]["player_id"], m["change"]) for m in body["risers"]] == [("q3", 2.0)]
-    assert [(m["player"]["player_id"], m["change"]) for m in body["fallers"]] == [
-        ("q1", -16.0),
-        ("q2", -16.0),
+    assert [(m["player"]["player_id"], m["points_change"]) for m in body["risers"]] == [
+        ("q3", 18.0)
     ]
-    assert body["risers"][0]["value_now"] == 2.0
-    assert body["risers"][0]["ros_points_then"] == 20.0
+    # q1 and q2 lost 16 VALUE points each, but only because replacement level rose. Their own
+    # projections did not change, so they are not fallers.
+    assert body["fallers"] == []
+    riser = body["risers"][0]
+    assert (riser["value_now"], riser["change"]) == (2.0, 2.0)
+    assert (riser["ros_points_then"], riser["ros_points_now"]) == (20.0, 38.0)
+
+
+def test_a_player_whose_own_projection_drops_is_a_faller(
+    client: TestClient, db_session: Session
+) -> None:
+    add_players(db_session, dict.fromkeys(["q1", "q2", "q3", "q4"], "QB"))
+    add_snapshot(db_session, date(2026, 10, 7), {"q1": 20, "q2": 18, "q3": 15, "q4": 5}, (5, 6, 7))
+    # q1 gets hurt: 20 -> 12 per week. Nobody else changes.
+    add_snapshot(db_session, date(2026, 10, 15), {"q1": 12, "q2": 18, "q3": 15, "q4": 5}, (6, 7))
+
+    body = client.get("/api/v1/trending", params={"teams": 2}).json()
+
+    assert [(m["player"]["player_id"], m["points_change"]) for m in body["fallers"]] == [
+        ("q1", -16.0)
+    ]
+    assert body["risers"] == []
+
+
+def test_a_big_mover_below_replacement_level_is_not_trade_news(
+    client: TestClient, db_session: Session
+) -> None:
+    add_players(db_session, dict.fromkeys(["q1", "q2", "q3", "q4"], "QB"))
+    add_snapshot(db_session, date(2026, 10, 7), {"q1": 20, "q2": 18, "q3": 15, "q4": 5}, (5, 6, 7))
+    # q4 jumps +18 points (5 -> 14 per week) but stays below q3 (replacement level, 15 per week):
+    # worth 0 before and after, so there is nothing to trade.
+    add_snapshot(db_session, date(2026, 10, 15), {"q1": 20, "q2": 18, "q3": 15, "q4": 14}, (6, 7))
+
+    body = client.get("/api/v1/trending", params={"teams": 2}).json()
+
+    assert (body["risers"], body["fallers"]) == ([], [])
+
+
+def test_a_player_who_crosses_replacement_level_is_a_riser(
+    client: TestClient, db_session: Session
+) -> None:
+    add_players(db_session, dict.fromkeys(["q1", "q2", "q3", "q4"], "QB"))
+    add_snapshot(db_session, date(2026, 10, 7), {"q1": 20, "q2": 18, "q3": 15, "q4": 5}, (5, 6, 7))
+    # q4 leaps from worthless to a starter-level 19 per week.
+    add_snapshot(db_session, date(2026, 10, 15), {"q1": 20, "q2": 18, "q3": 15, "q4": 19}, (6, 7))
+
+    body = client.get("/api/v1/trending", params={"teams": 2}).json()
+
+    assert [(m["player"]["player_id"], m["points_change"]) for m in body["risers"]] == [
+        ("q4", 28.0)
+    ]
+    assert body["risers"][0]["value_then"] == 0.0 and body["risers"][0]["value_now"] > 0
+
+
+def test_tiny_projection_wiggles_are_not_movers(client: TestClient, db_session: Session) -> None:
+    add_players(db_session, dict.fromkeys(["q1", "q2", "q3"], "QB"))
+    add_snapshot(db_session, date(2026, 10, 7), {"q1": 20.0, "q2": 18, "q3": 15}, (5, 6, 7))
+    # q1 moves 0.2 points per week: 0.4 over two weeks, under the 0.5-point noise floor.
+    add_snapshot(db_session, date(2026, 10, 15), {"q1": 20.2, "q2": 18, "q3": 15}, (6, 7))
+
+    body = client.get("/api/v1/trending", params={"teams": 2}).json()
+
+    assert (body["risers"], body["fallers"]) == ([], [])
 
 
 def test_short_history_still_reports_the_latest_snapshot(
@@ -81,12 +140,20 @@ def test_short_history_still_reports_the_latest_snapshot(
 
 def test_limit_caps_every_list(client: TestClient, db_session: Session) -> None:
     add_players(db_session, dict.fromkeys(["q1", "q2", "q3", "q4"], "QB"))
-    add_snapshot(db_session, date(2026, 10, 7), {"q1": 20, "q2": 18, "q3": 10, "q4": 5}, (5, 6, 7))
-    add_snapshot(db_session, date(2026, 10, 15), {"q1": 20, "q2": 18, "q3": 19, "q4": 5}, (6, 7))
+    add_snapshot(db_session, date(2026, 10, 7), {"q1": 20, "q2": 18, "q3": 10, "q4": 9}, (5, 6, 7))
+    # Two teams start one QB each. Before: q1 and q2 start (values 20 and 16); q3 is replacement.
+    # After: q3 and q4 jump +9 per week and become the starters; q1 and q2 drop to
+    # -5 and -4 per week (-10 and -8 points over two weeks) and fall to replacement level.
+    add_snapshot(db_session, date(2026, 10, 15), {"q1": 15, "q2": 14, "q3": 19, "q4": 18}, (6, 7))
 
-    body = client.get("/api/v1/trending", params={"teams": 2, "limit": 1}).json()
+    uncapped = client.get("/api/v1/trending", params={"teams": 2}).json()
+    capped = client.get("/api/v1/trending", params={"teams": 2, "limit": 1}).json()
 
-    assert len(body["fallers"]) == 1
+    assert [m["player"]["player_id"] for m in uncapped["risers"]] == ["q3", "q4"]
+    assert [m["player"]["player_id"] for m in uncapped["fallers"]] == ["q1", "q2"]
+    # The cap keeps the biggest mover in each list, not an arbitrary one.
+    assert [m["player"]["player_id"] for m in capped["risers"]] == ["q3"]
+    assert [m["player"]["player_id"] for m in capped["fallers"]] == ["q1"]
 
 
 @pytest.mark.parametrize("params", [{"days": 0}, {"days": 31}, {"limit": 0}, {"limit": 51}])
