@@ -1,4 +1,4 @@
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 from typing import Annotated
 
 from fastapi import APIRouter, Query
@@ -10,7 +10,7 @@ from app.routers.values import format_out
 from app.schemas.players import PlayerRef
 from app.schemas.trending import TradedPlayerOut, TrendingResponse, ValueMoveOut
 from app.services.trending import ValueMove, trade_volume, value_moves
-from app.services.values import ValuesUnavailableError, league_format
+from app.services.values import ValuesUnavailableError, latest_snapshot_date, league_format
 
 router = APIRouter(tags=["trending"])
 
@@ -53,15 +53,20 @@ def trending(
         for player in db.scalars(select(Player).where(Player.player_id.in_(traded_ids)))
     }
 
+    # snapshot_date is the newest projections snapshot whenever one exists, even while the
+    # history is too short for movers, so the page can tell "nothing loaded yet" (null) from
+    # "history still building" (a date, with compared_to null) without a second request.
+    snapshot_date: date | None = None
+    compared_to: date | None = None
     try:
+        snapshot_date = latest_snapshot_date(db)
         moves = value_moves(db, fmt, days=days)
     except ValuesUnavailableError:
         moves = None  # no projections yet: trade volume still works, value moves don't
     risers: list[ValueMoveOut] = []
     fallers: list[ValueMoveOut] = []
-    snapshot_date = compared_to = None
     if moves is not None:
-        snapshot_date, compared_to = moves.now.snapshot_date, moves.compared_to
+        compared_to = moves.compared_to
         risers = [move_out(m, moves.players) for m in moves.moves if m.change > 0][:limit]
         fallers = [move_out(m, moves.players) for m in moves.moves if m.change < 0][:limit]
         risers.sort(key=lambda m: (-m.change, m.player.player_id))

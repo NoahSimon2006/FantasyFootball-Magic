@@ -66,6 +66,19 @@ def test_trending_reports_most_traded_players_and_value_risers_and_fallers(
     assert body["risers"][0]["ros_points_then"] == 20.0
 
 
+def test_short_history_still_reports_the_latest_snapshot(
+    client: TestClient, db_session: Session
+) -> None:
+    add_players(db_session, {"q1": "QB", "q2": "QB"})
+    add_snapshot(db_session, date(2026, 10, 15), {"q1": 20, "q2": 18}, (6, 7))
+
+    body = client.get("/api/v1/trending").json()
+
+    # A snapshot exists but nothing is 7+ days older: "history building", not "no data".
+    assert (body["snapshot_date"], body["compared_to"]) == ("2026-10-15", None)
+    assert (body["risers"], body["fallers"]) == ([], [])
+
+
 def test_limit_caps_every_list(client: TestClient, db_session: Session) -> None:
     add_players(db_session, dict.fromkeys(["q1", "q2", "q3", "q4"], "QB"))
     add_snapshot(db_session, date(2026, 10, 7), {"q1": 20, "q2": 18, "q3": 10, "q4": 5}, (5, 6, 7))

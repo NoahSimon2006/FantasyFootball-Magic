@@ -31,3 +31,10 @@ export function createApiClient({
 
 /** The app's client, for server code: `API_BASE_URL` is not exposed to the browser. */
 export const api = createApiClient();
+
+/**
+ * The client for browser code (Client Components). An empty base URL makes every request
+ * same-origin (`/api/v1/...` on the web server), which next.config.ts rewrites to the API:
+ * no CORS to configure, and the browser never needs to know where the API runs.
+ */
+export const browserApi = createApiClient({ baseUrl: "" });

@@ -26,8 +26,10 @@ class TrendingResponse(BaseModel):
     days: int  # the window length used for both signals
     league_format: LeagueFormatOut
     most_traded: list[TradedPlayerOut]
-    # Value moves need projection snapshots at least `days` apart. Until then these are
-    # empty and `compared_to` is null, so the page can say so instead of showing noise.
+    # Value moves need projection snapshots at least `days` apart. Until then risers and
+    # fallers are empty and `compared_to` is null, so the page can say so instead of showing
+    # noise. `snapshot_date` is the newest snapshot whenever projections exist at all (null
+    # only when none have been loaded), so the two empty states can be told apart.
     snapshot_date: date | None
     compared_to: date | None
     risers: list[ValueMoveOut]
