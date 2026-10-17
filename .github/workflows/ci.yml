@@ -42,7 +42,8 @@ jobs:
           --health-retries 10
     steps:
       - uses: actions/checkout@v7
-      - uses: astral-sh/setup-uv@v10
+      # Exact version: this action publishes only full version tags (no floating "v10").
+      - uses: astral-sh/setup-uv@v10.3.0
         with:
           working-directory: api
           enable-cache: true
